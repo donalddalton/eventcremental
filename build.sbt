@@ -8,6 +8,7 @@ ThisBuild / organizationName := "eventcremental"
 lazy val root = (project in file("."))
   .settings(
     name := "eventcremental",
-    libraryDependencies += scalaTest % Test
+    libraryDependencies += scalaTest,
+    libraryDependencies += joda
   )
 
