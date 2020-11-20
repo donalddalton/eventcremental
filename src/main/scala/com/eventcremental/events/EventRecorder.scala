@@ -11,10 +11,11 @@ object EventRecorder {
 }
 
 /**
-  * Thread-safe fixed-duration event recorder. Create statically per logical use case. Stores events with epoch formatted
-  * timestamps (ms) in a mutable ArrayDeque providing O(1) append, head, removeHead, tail, removeTail operations.
+  * Thread-safe fixed-duration event recorder. Create statically per logical use case. Stores events with epoch
+  * formatted timestamps (ms) in a mutable ArrayDeque providing O(1) append, head, removeHead, tail, removeTail
+  * operations.
   *
- * Clients can perform two operations:
+  * Clients can perform two operations:
   * <ul>
   *  <li> Signal that a single event happened. Each time a new event is recorded, an opportunistic check is performed to
   *  see if the oldest event can be dropped. This is a constant time operation (append + head + removeHead).
@@ -32,7 +33,7 @@ object EventRecorder {
   *    val requests = new EventRecorder("Http Requests")
   *  }
   *
- *  class SomeRecordedApplication {
+  *  class SomeRecordedApplication {
   *    def processRequest(): Unit = {
   *      requests.record()
   *    }
@@ -66,8 +67,8 @@ class EventRecorder(
   def getCount(timespanMillis: Long = retentionTimeMillis): Int = getCount(Some(currentTimeMillis), timespanMillis)
 
   /**
-    * Timestamps are assumed to be monotonically increasing. Each time a new event is recorded, check if the oldest event
-    * (head of queue) can be purged.
+    * Timestamps are assumed to be monotonically increasing. Each time a new event is recorded, check if the oldest
+    * event (head of queue) can be purged.
     *
     * @param currentTime Optionally override the clock for tests.
     * @return The oldest event dropped in the update.
@@ -84,9 +85,9 @@ class EventRecorder(
   }
 
   /**
-    * Traverse the underlying array counting the number of events recorded in the timespan.
+    * Traverse the underlying array counting the number of events recorded between the current time and timespan.
     *
-   * @param currentTime Optionally override the clock for tests.
+    * @param currentTime Optionally override the clock for tests.
     * @param timespanMillis Query timespan.
     * @return The number of events recorded in the timespan.
     */
@@ -99,6 +100,6 @@ class EventRecorder(
     adq.count(event => (now - event) <= timespanMillis)
   }
 
-  // Only used in tests
+  /** Only used in tests. */
   private[events] final def getEvents: Seq[Long] = this.synchronized(adq.toSeq)
 }

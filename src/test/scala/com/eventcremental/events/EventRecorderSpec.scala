@@ -30,7 +30,7 @@ class EventRecorderSpec extends AnyFlatSpec with Matchers {
   }
 
   "recorder" should "drop stale events when recording new events" in {
-    val recorder = new EventRecorder("foo", 2)
+    val recorder = new EventRecorder("foo", 2) // set the retention time to 2 ms
     recorder.record(Some(0)) // record an event at t=0
     recorder.record(Some(1)) // record an event at t=1
     recorder.getEvents shouldBe Seq(0, 1)
@@ -40,16 +40,16 @@ class EventRecorderSpec extends AnyFlatSpec with Matchers {
 
   behavior of "Event Counting"
 
-  "recorder" should "return 0 when empty" in {
-    new EventRecorder("foo").getCount() shouldBe 0
-  }
-
   "recorder" should "count events" in {
-    val recorder = new EventRecorder("foo", 5)
+    val recorder = new EventRecorder("foo", 2)
     recorder.record(Some(0)) // record an event at t=0
     recorder.record(Some(1)) // record an event at t=1
     recorder.getEvents shouldBe Seq(0, 1)
     recorder.getCount(Some(1), 2) shouldBe 2 // set clock to t=1 and request last 2 ms of events (1, 0)
+  }
+
+  "recorder" should "count zero events when empty" in {
+    new EventRecorder("foo").getCount() shouldBe 0
   }
 
   "recorder" should "filter events by timespan" in {
@@ -68,7 +68,7 @@ class EventRecorderSpec extends AnyFlatSpec with Matchers {
     recorder.record(Some(0)) // record an event at t=0
     recorder.record(Some(1)) // record an event at t=1
     recorder.getEvents shouldBe Seq(0, 1)
-    recorder.getCount(Some(100), 2) shouldBe 0 // set clock to t=100 and request last 2 ms of events
+    recorder.getCount(Some(4), 2) shouldBe 0 // set clock to t=4 and request last 2 ms of events
   }
 
   behavior of "Error Handling"
