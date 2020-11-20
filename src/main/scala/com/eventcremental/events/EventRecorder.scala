@@ -55,7 +55,7 @@ class EventRecorder(
   private val adq = new mutable.ArrayDeque[Long](initialSize = retentionTimeMillis.toInt)
 
   /** Record an event. */
-  def record(): Unit = record(Some(currentTimeMillis))
+  def record(): Unit = record(currentTimeMillis)
 
   /**
     * Returns the number of events recorded in a given timespan (ms) relative to the current epoch time.
@@ -64,22 +64,21 @@ class EventRecorder(
     * @return The number of events recorded in the timespan.
     * @throws IllegalArgumentException Timespan must be non-negative.
     */
-  def getCount(timespanMillis: Long = retentionTimeMillis): Int = getCount(Some(currentTimeMillis), timespanMillis)
+  def getCount(timespanMillis: Long = retentionTimeMillis): Int = getCount(currentTimeMillis, timespanMillis)
 
   /**
     * Timestamps are assumed to be monotonically increasing. Each time a new event is recorded, check if the oldest
     * event (head of queue) can be purged.
     *
-    * @param currentTime Optionally override the clock for tests.
+    * @param currentTime The current time. Can only be specified in tests.
     * @return The oldest event dropped in the update.
     */
-  private[events] final def record(currentTime: Option[Long]) = this.synchronized {
-    val now = currentTime.getOrElse(currentTimeMillis)
+  private[events] final def record(currentTime: Long) = this.synchronized {
     val dropped = adq.headOption match {
-      case Some(oldestEvent) if (now - oldestEvent) > retentionTimeMillis => Some(adq.removeHead())
-      case _                                                              => None
+      case Some(oldestEvent) if (currentTime - oldestEvent) > retentionTimeMillis => Some(adq.removeHead())
+      case _                                                                      => None
     }
-    adq.addOne(now)
+    adq.addOne(currentTime)
 
     dropped
   }
@@ -87,17 +86,16 @@ class EventRecorder(
   /**
     * Traverse the underlying array counting the number of events recorded between the current time and timespan.
     *
-    * @param currentTime Optionally override the clock for tests.
+    * @param currentTime The current time. Can only be specified in tests.
     * @param timespanMillis Query timespan.
     * @return The number of events recorded in the timespan.
     */
   private[events] final def getCount(
-    currentTime: Option[Long],
+    currentTime: Long,
     timespanMillis: Long
   ): Int = this.synchronized {
     require(timespanMillis >= 0, "Timespan must be non-negative.")
-    val now = currentTime.getOrElse(currentTimeMillis)
-    adq.count(event => (now - event) <= timespanMillis)
+    adq.count(event => (currentTime - event) <= timespanMillis)
   }
 
   /** Only used in tests. */
