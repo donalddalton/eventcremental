@@ -10,12 +10,16 @@ Small library which helps track the number of events that happened during a spec
 ### Example
 ```scala
 object SomeRecordedApplication {
-  val requests = new EventRecorder("Http Requests")
+  val requests = new Counter("Http Requests")
 }
 
 class SomeRecordedApplication {
+  import SomeRecordedApplication._
+
   def processRequest(): Unit = {
-    requests.record()
+    requests.inc()
+    println(s"10 (ms) total: ${requests.total(10)}") // > 10 (ms) total: 1
+    // your application code
   }
 }
 ```
